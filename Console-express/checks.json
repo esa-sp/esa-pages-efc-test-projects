@@ -1,0 +1,14 @@
+{
+  "assertions": [
+    { "path": "/healthz", "expectedStatus": 200, "bodyJsonSubset": { "ok": true } },
+    { "path": "/", "expectedStatus": 200, "bodyJsonSubset": { "project": "Console-express" } },
+    { "path": "/__console/levels?marker=check-levels", "expectedStatus": 200, "bodyJsonSubset": { "ok": true, "scenario": "levels", "methods": ["log", "info", "debug", "warn", "error", "dir"] } },
+    { "path": "/__console/format?marker=check-format", "expectedStatus": 200, "bodyJsonSubset": { "ok": true, "scenario": "format", "logs": 3 } },
+    { "path": "/__console/long?marker=check-long", "expectedStatus": 200, "bodyJsonSubset": { "ok": true, "scenario": "long" } },
+    { "path": "/__console/async?marker=check-async&delayMs=50", "expectedStatus": 200, "bodyJsonSubset": { "ok": true, "scenario": "async", "delayMs": 50 } },
+    { "path": "/__console/child?marker=check-child", "expectedStatus": 200, "bodyJsonSubset": { "ok": true, "scenario": "child" } },
+    { "path": "/__console/raw?marker=check-raw", "expectedStatus": 200, "bodyJsonSubset": { "ok": true, "scenario": "raw", "consoleLogs": 1, "directWrites": 2 } },
+    { "path": "/__console/error?marker=check-error", "expectedStatus": 500, "bodyJsonSubset": { "ok": false, "scenario": "error" } },
+    { "path": "/__console/levels?marker=bad%0Amarker", "expectedStatus": 400, "bodyJsonSubset": { "ok": false } }
+  ]
+}

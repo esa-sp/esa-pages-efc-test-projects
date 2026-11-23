@@ -1,0 +1,6 @@
+{
+  // 验证云构建为 Express 后端注入的 EFC console 采集钩子。
+  // 不写 build、assets、entry：由 package.json 的 start 脚本识别 server.js。
+  "name": "efc-console-express",
+  "installCommand": "npm install --no-audit --no-fund"
+}

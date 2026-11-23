@@ -1,0 +1,15 @@
+{
+  "name": "console-express-efc-test",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test server.test.mjs",
+    "probe": "node probe.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.18.0"
+  }
+}
