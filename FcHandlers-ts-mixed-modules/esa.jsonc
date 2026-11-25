@@ -1,0 +1,6 @@
+{
+  "name": "fc-handlers-ts-mixed-modules",
+  "installCommand": "npm install --no-audit --no-fund",
+  "assets": "public",
+  // 不预构建、不改名 TS 源码；运行路由使用显式编译产物映射。
+}

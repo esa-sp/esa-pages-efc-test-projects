@@ -1,0 +1,10 @@
+{
+  "name": "fastify-ts-await-listen-fixture",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "server.ts",
+  "dependencies": {
+    "fastify": "^4.28.1"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "assertions": [
+    {
+      "path": "/",
+      "expectedStatus": 200,
+      "bodyContains": "Express ESM TypeScript"
+    },
+    {
+      "path": "/api/health",
+      "expectedStatus": 200,
+      "bodyJsonSubset": {
+        "ok": true,
+        "module": "esm",
+        "framework": "express5",
+        "initialized": "top-level-await",
+        "value": "paths-exact"
+      }
+    },
+    {
+      "path": "/api/resource",
+      "expectedStatus": 200,
+      "bodyEquals": "esm-resource\n"
+    },
+    {
+      "path": "/api/dynamic",
+      "expectedStatus": 200,
+      "bodyJsonSubset": { "value": "dynamic-ts" }
+    }
+  ]
+}

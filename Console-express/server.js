@@ -1,13 +1,157 @@
-// 独立 Express 应用：只调用原生 console，不安装钩子、不读取或输出平台日志密钥。
+// 独立 Express 应用：不安装采集钩子；诊断只判断密钥存在性与格式，不输出密钥。
 // 控制台根目录：Console-express；构建命令、静态目录、入口留空。
 // GET /__console/<场景>?marker=<本轮标记>；async 可另传 delayMs=0..1000。
 const express = require('express');
 const { randomUUID } = require('node:crypto');
 const { spawn } = require('node:child_process');
+const { AsyncLocalStorage } = require('node:async_hooks');
+const diagnostics = require('node:diagnostics_channel');
+const { performance } = require('node:perf_hooks');
+
+const reportContext = new AsyncLocalStorage();
+const reportWaitMs = 5500;
+const logEndpoint = 'http://127.0.0.1:44772/function-logs';
+
+function runtimeStatus() {
+  const hook = globalThis[Symbol.for('esa.runtime-log')];
+  const key = process.env.ESA_EFC_FUNCTION_LOG_KEY || '';
+  return {
+    nodeVersion: process.version,
+    pid: process.pid,
+    hookLoaded: Boolean(hook),
+    hookInstalled: hook?.installed === true,
+    logKeyPresent: key.length > 0,
+    logKeyValid: /^[\x21-\x7e]{1,4096}$/.test(key),
+    observer: 'node:diagnostics_channel/http.client.request.start',
+  };
+}
+
+// 观察原生 HTTP 事件，不替换 request；钩子安装时缓存的原始 request 也能被观察。
+// 不读取认证头、上传正文或响应正文；上下文只绑定本轮 report，不收集其他业务请求。
+diagnostics.subscribe('http.client.request.start', ({ request }) => {
+  try {
+    const probe = reportContext.getStore();
+    if (!probe || probe.settled || probe.upload.attempts > 0
+      || request.method !== 'POST' || request.path !== '/function-logs'
+      || request.host !== '127.0.0.1' || request.getHeader('host') !== '127.0.0.1:44772') {
+      return;
+    }
+    const upload = probe.upload;
+    upload.attempts = 1;
+    upload.requestStarted = true;
+    upload.requestStartedAt = new Date().toISOString();
+    const failed = (error) => {
+      const code = typeof error?.code === 'string' && /^[A-Z0-9_]{1,80}$/.test(error.code)
+        ? error.code : 'UNKNOWN';
+      probe.finish('request_error', `上报请求失败：${code}`, code);
+    };
+    const closed = () => probe.finish('request_closed', '上报请求未完成即关闭');
+    request.once('error', failed);
+    request.once('close', closed);
+    request.once('response', (response) => {
+      if (probe.settled) {
+        return;
+      }
+      upload.responseReceived = true;
+      upload.statusCode = response.statusCode;
+      upload.responseReceivedAt = new Date().toISOString();
+      response.once('error', failed);
+      response.once('aborted', closed);
+      response.once('close', closed);
+      response.once('end', () => {
+        if (probe.settled) {
+          return;
+        }
+        upload.responseCompleted = response.complete;
+        if (response.complete) {
+          probe.finish('http_response', `上报接口返回 HTTP ${response.statusCode}`);
+        } else {
+          closed();
+        }
+      });
+    });
+  } catch {
+    // 诊断异常不能影响实际上传；由本轮观察窗口返回未观察到或未完成状态。
+  }
+});
+
+function reportUpload(marker) {
+  const started = performance.now();
+  const result = {
+    ok: true,
+    scenario: 'report',
+    marker,
+    runtime: runtimeStatus(),
+    upload: {
+      endpoint: logEndpoint,
+      method: 'POST',
+      consoleMethod: 'log',
+      consoleTriggeredAt: new Date().toISOString(),
+      status: 'pending',
+      message: null,
+      attempts: 0,
+      requestStarted: false,
+      requestStartedAt: null,
+      responseReceived: false,
+      responseReceivedAt: null,
+      responseCompleted: false,
+      statusCode: null,
+      httpSucceeded: false,
+      errorCode: null,
+      elapsedMs: 0,
+      maxWaitMs: reportWaitMs,
+      observerTimedOut: false,
+    },
+  };
+  return new Promise((resolve) => {
+    let timer;
+    const probe = {
+      upload: result.upload,
+      settled: false,
+      finish(status, message, errorCode = null) {
+        if (probe.settled) {
+          return;
+        }
+        probe.settled = true;
+        clearTimeout(timer);
+        Object.assign(result.upload, {
+          status, message, errorCode,
+          elapsedMs: Math.round((performance.now() - started) * 100) / 100,
+          completedAt: new Date().toISOString(),
+          httpSucceeded: status === 'http_response' && result.upload.responseCompleted
+            && result.upload.statusCode >= 200 && result.upload.statusCode < 300,
+        });
+        // 绕过 console，避免诊断再次上报；即使即时日志不可用，HTTP 响应仍包含结果。
+        try {
+          process.stdout.write(`[efc-console-report] ${JSON.stringify(result)}\n`);
+        } catch {
+          // 原生输出失败不影响诊断响应。
+        }
+        resolve(result);
+      },
+    };
+    timer = setTimeout(() => {
+      result.upload.observerTimedOut = true;
+      if (result.upload.attempts === 0) {
+        probe.finish('not_observed', '未观察到上报请求');
+      } else {
+        probe.finish('request_closed', '上报请求未完成即关闭');
+      }
+    }, reportWaitMs);
+    reportContext.run(probe, () => console.log(tag(marker, 'report'), 'console.log'));
+    if (!result.runtime.hookInstalled) {
+      setImmediate(() => {
+        if (result.upload.attempts === 0) {
+          probe.finish('not_installed', '未观察到采集钩子安装');
+        }
+      });
+    }
+  });
+}
 
 const app = express();
 const methods = ['log', 'info', 'debug', 'warn', 'error', 'dir'];
-const scenarios = ['levels', 'format', 'long', 'async', 'child', 'raw', 'error'];
+const scenarios = ['levels', 'format', 'long', 'async', 'child', 'raw', 'error', 'report'];
 const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res)).catch(next);
 const tag = (marker, event) => `[efc-console] ${marker}:${event}`;
 
@@ -15,6 +159,7 @@ app.disable('x-powered-by');
 app.get('/healthz', (_req, res) => res.json({ ok: true }));
 app.get('/', (_req, res) => res.json({
   project: 'Console-express',
+  reportUrl: '/__console/report?marker=test1',
   usage: '/__console/<场景>?marker=<字母、数字、下划线或连字符，最多80位>',
   scenarios,
   notes: [
@@ -33,6 +178,10 @@ app.use('/__console', (req, res, next) => {
   res.set('Cache-Control', 'no-store');
   next();
 });
+
+app.get('/__console/report', asyncHandler(async (_req, res) => {
+  res.json(await reportUpload(res.locals.marker));
+}));
 
 app.get('/__console/levels', (_req, res) => {
   const marker = res.locals.marker;

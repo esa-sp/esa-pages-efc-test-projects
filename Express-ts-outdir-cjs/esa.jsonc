@@ -1,0 +1,6 @@
+{
+  "name": "express-ts-outdir-cjs",
+  "installCommand": "npm install --no-audit --no-fund",
+  "buildCommand": "npm run build",
+  // main 故意指向 TS；TestStep 必须复用继承 outDir 中的新产物。
+}

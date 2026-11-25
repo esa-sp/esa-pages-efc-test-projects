@@ -1,0 +1,15 @@
+{
+  "assertions": [
+    { "path": "/", "expectedStatus": 200, "bodyContains": "User Built ESM" },
+    {
+      "path": "/api/health",
+      "expectedStatus": 200,
+      "bodyJsonSubset": {
+        "ok": true,
+        "module": "esm",
+        "artifact": "user-built-esm",
+        "from": "outdir"
+      }
+    }
+  ]
+}

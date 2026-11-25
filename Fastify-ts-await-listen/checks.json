@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "path": "/",
+      "expectedStatus": 200,
+      "bodyContains": "Fastify Await Listen"
+    },
+    {
+      "path": "/api/health",
+      "expectedStatus": 200,
+      "bodyJsonSubset": {
+        "ok": true,
+        "initialized": "top-level-await",
+        "listening": true,
+        "requestedPort": 18080,
+        "runtimePort": true,
+        "publicBinding": true
+      }
+    },
+    {
+      "path": "/api/resource",
+      "expectedStatus": 200,
+      "bodyEquals": "fastify-resource\n"
+    }
+  ]
+}

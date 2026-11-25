@@ -1,0 +1,5 @@
+{
+  "name": "backend-ts-mixed-modules",
+  "installCommand": "npm install --no-audit --no-fund",
+  // 不预构建；显式扩展名和嵌套包作用域决定每个模块的运行格式。
+}

@@ -1,0 +1,10 @@
+{
+  "name": "backend-ts-mixed-modules-fixture",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/server.mts",
+  "dependencies": {
+    "express": "5.0.1"
+  }
+}

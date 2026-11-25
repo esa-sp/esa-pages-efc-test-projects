@@ -12,7 +12,11 @@ import { after, before, test } from 'node:test';
 const projectDir = path.dirname(fileURLToPath(import.meta.url));
 const runtimeDir = process.env.EFC_CONSOLE_RUNTIME_DIR;
 const injected = Boolean(runtimeDir);
+// 可选：使用已有构建产物中的真实钩子，单独验证当前示例的诊断路由。
+const hookFile = process.env.EFC_CONSOLE_HOOK_FILE
+  || (runtimeDir ? path.resolve(runtimeDir, '__efc_runtime-hooks.cjs') : '');
 const records = [];
+let receiverReply = (_record, res) => res.writeHead(204).end();
 let receiver;
 let child;
 let base;
@@ -38,7 +42,7 @@ async function freePort() {
 }
 
 before(async () => {
-  if (injected) {
+  if (injected || hookFile) {
     receiver = http.createServer((req, res) => {
       let body = '';
       req.setEncoding('utf8');
@@ -46,13 +50,13 @@ before(async () => {
       req.on('end', () => {
         assert.equal(req.method, 'POST');
         assert.equal(req.url, '/function-logs');
-        assert.equal(req.headers['x-efc-function-log-key'], 'fixture-local-test');
+        assert.ok(['fixture-local-test', 'fixture-report-secret'].includes(req.headers['x-efc-function-log-key']));
         const record = JSON.parse(body);
         assert.deepEqual(Object.keys(record).sort(), ['host', 'level', 'log', 'path', 'request_id']);
         assert.ok(Buffer.byteLength(record.log) <= 32768);
         assert.ok(Buffer.byteLength(body) <= 65536);
         records.push(record);
-        res.writeHead(204).end();
+        receiverReply(record, res);
       });
     });
     receiver.listen(44772, '127.0.0.1');
@@ -225,6 +229,173 @@ test('marker 与延迟参数拒绝非法或无界输入', async () => {
   for (const delay of ['-1', '1001', 'NaN', '1.5']) {
     assert.equal((await request('async', 'invalid-delay', undefined, `&delayMs=${delay}`)).status, 400);
   }
+});
+
+async function reportApp(t, { loadHook = Boolean(hookFile), key = 'fixture-report-secret', disableLog = false } = {}) {
+  const port = await freePort();
+  let output = '';
+  let errors = '';
+  const script = [
+    loadHook ? `require(${JSON.stringify(path.resolve(hookFile))});` : '',
+    disableLog ? 'console.log = new (require("node:console").Console)(process.stdout, process.stderr).log;' : '',
+    `require(${JSON.stringify(path.join(projectDir, 'server.js'))});`,
+  ].join('\n');
+  const app = spawn(process.execPath, ['-e', script], {
+    cwd: projectDir,
+    env: { ...process.env, PORT: String(port), NODE_OPTIONS: '', ESA_EFC_FUNCTION_LOG_KEY: key },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  app.stdout.setEncoding('utf8').on('data', (chunk) => { output += chunk; });
+  app.stderr.setEncoding('utf8').on('data', (chunk) => { errors += chunk; });
+  t.after(async () => {
+    receiverReply = (_record, res) => res.writeHead(204).end();
+    if (app.exitCode === null) {
+      const exited = once(app, 'exit');
+      app.kill('SIGTERM');
+      await exited;
+    }
+  });
+  await waitFor(() => output.includes('listening on port') || app.exitCode !== null, '诊断应用未启动');
+  assert.equal(app.exitCode, null, errors);
+  return {
+    output: () => output + errors,
+    health: async () => {
+      const res = await fetch(`http://127.0.0.1:${port}/healthz`, { signal: AbortSignal.timeout(3000) });
+      assert.equal(res.status, 200);
+      assert.deepEqual(await res.json(), { ok: true });
+    },
+    request: async (marker) => {
+      const res = await fetch(`http://127.0.0.1:${port}/__console/report?marker=${marker}`, {
+        signal: AbortSignal.timeout(10000),
+      });
+      assert.equal(res.status, 200);
+      assert.equal(res.headers.get('cache-control'), 'no-store');
+      return res.json();
+    },
+  };
+}
+
+// 下列断言保护真实上报的状态判定、失败路径、并发隔离及不递归，不以模拟 console 替代采集钩子。
+test('未注入钩子时明确返回未安装，而非误报上报成功', async (t) => {
+  const app = await reportApp(t, { loadHook: false });
+  const result = await app.request('report-no-hook');
+  assert.equal(result.runtime.hookLoaded, false);
+  assert.equal(result.runtime.hookInstalled, false);
+  assert.equal(result.runtime.logKeyPresent, true);
+  assert.equal(result.runtime.logKeyValid, true);
+  assert.equal(result.upload.status, 'not_installed');
+  assert.equal(result.upload.attempts, 0);
+  assert.equal(result.upload.httpSucceeded, false);
+  assert.equal(result.upload.statusCode, null);
+  assert.ok(!JSON.stringify(result).includes('fixture-report-secret'));
+  await waitFor(() => app.output().includes('未观察到采集钩子安装'), '未输出诊断');
+  assert.ok(!app.output().includes('fixture-report-secret'));
+});
+
+for (const [label, key, present] of [['缺失', '', false], ['非法', 'bad key', true]]) {
+  test(`日志密钥${label}时只暴露安全布尔状态`, { skip: !hookFile }, async (t) => {
+    const app = await reportApp(t, { key });
+    const result = await app.request(`report-key-${present}`);
+    assert.equal(result.runtime.hookLoaded, true);
+    assert.equal(result.runtime.hookInstalled, false);
+    assert.equal(result.runtime.logKeyPresent, present);
+    assert.equal(result.runtime.logKeyValid, false);
+    assert.equal(result.upload.status, 'not_installed');
+    assert.equal(result.upload.attempts, 0);
+    assert.equal(result.upload.httpSucceeded, false);
+    if (key) {
+      assert.ok(!JSON.stringify(result).includes(key));
+      assert.ok(!app.output().includes(key));
+    }
+  });
+}
+
+for (const [code, succeeded] of [[204, true], [401, false], [500, false]]) {
+  test(`真实上报 HTTP ${code} 的结果准确，诊断不产生额外上报`, { skip: !hookFile }, async (t) => {
+    receiverReply = (_record, res) => res.writeHead(code, { 'x-test-secret': 'fixture-report-secret' }).end('fixture-report-secret');
+    const app = await reportApp(t);
+    const marker = `report-http-${code}`;
+    const result = await app.request(marker);
+    assert.equal(result.marker, marker);
+    assert.equal(result.runtime.hookInstalled, true);
+    assert.match(result.runtime.nodeVersion, /^v\d+/);
+    assert.ok(result.runtime.pid > 0);
+    assert.equal(result.upload.endpoint, 'http://127.0.0.1:44772/function-logs');
+    assert.equal(result.upload.status, 'http_response');
+    assert.equal(result.upload.statusCode, code);
+    assert.equal(result.upload.responseReceived, true);
+    assert.equal(result.upload.responseCompleted, true);
+    assert.equal(result.upload.httpSucceeded, succeeded);
+    assert.equal(result.upload.errorCode, null);
+    assert.equal(result.upload.attempts, 1);
+    assert.ok(result.upload.elapsedMs >= 0 && result.upload.elapsedMs < 5500);
+    assert.ok(!JSON.stringify(result).includes('fixture-report-secret'));
+    await waitFor(() => app.output().includes(`上报接口返回 HTTP ${code}`), 'HTTP 结果未输出');
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    assert.equal(records.filter((r) => r.log.includes(marker)).length, 1);
+    assert.ok(!records.some((r) => r.log.includes('[efc-console-report]')));
+    assert.ok(!app.output().includes('fixture-report-secret'));
+  });
+}
+
+test('端口不通时返回实际 ECONNREFUSED，健康检查仍可用', { skip: !hookFile }, async (t) => {
+  receiver.closeAllConnections();
+  await new Promise((resolve) => receiver.close(resolve));
+  t.after(async () => {
+    receiver.listen(44772, '127.0.0.1');
+    await once(receiver, 'listening');
+  });
+  const app = await reportApp(t);
+  const result = await app.request('report-refused');
+  assert.equal(result.upload.status, 'request_error');
+  assert.equal(result.upload.errorCode, 'ECONNREFUSED');
+  assert.equal(result.upload.httpSucceeded, false);
+  assert.equal(result.upload.responseReceived, false);
+  assert.equal(result.upload.attempts, 1);
+  await waitFor(() => app.output().includes('上报请求失败：ECONNREFUSED'), '连接失败未输出');
+  await app.health();
+});
+
+test('HTTP 200 响应未结束时不能误报成功，钩子 deadline 后返回关闭状态', { skip: !hookFile, timeout: 15000 }, async (t) => {
+  receiverReply = (_record, res) => { res.writeHead(200); res.flushHeaders(); };
+  const app = await reportApp(t);
+  const result = await app.request('report-incomplete');
+  assert.equal(result.upload.status, 'request_closed');
+  assert.equal(result.upload.statusCode, 200);
+  assert.equal(result.upload.responseReceived, true);
+  assert.equal(result.upload.responseCompleted, false);
+  assert.equal(result.upload.httpSucceeded, false);
+  assert.ok(result.upload.elapsedMs >= 4500 && result.upload.elapsedMs < 5500);
+  await waitFor(() => app.output().includes('上报请求未完成即关闭'), '未完成状态未输出');
+});
+
+test('钩子存在但本轮未上报时不把其他 console 的请求当作成功', { skip: !hookFile, timeout: 15000 }, async (t) => {
+  const app = await reportApp(t, { disableLog: true });
+  const result = await app.request('report-unobserved');
+  assert.equal(result.runtime.hookInstalled, true);
+  assert.equal(result.upload.status, 'not_observed');
+  assert.equal(result.upload.attempts, 0);
+  assert.equal(result.upload.httpSucceeded, false);
+  await waitFor(() => app.output().includes('未观察到上报请求'), '无上报状态未输出');
+});
+
+test('并发诊断的成功与失败结果按 marker 隔离', { skip: !hookFile }, async (t) => {
+  receiverReply = (record, res) => {
+    const denied = record.log.includes('report-concurrent-denied');
+    setTimeout(() => res.writeHead(denied ? 401 : 204).end(), denied ? 40 : 5);
+  };
+  const app = await reportApp(t);
+  const [denied, accepted] = await Promise.all([
+    app.request('report-concurrent-denied'), app.request('report-concurrent-accepted'),
+  ]);
+  assert.equal(denied.marker, 'report-concurrent-denied');
+  assert.equal(denied.upload.statusCode, 401);
+  assert.equal(denied.upload.httpSucceeded, false);
+  assert.equal(accepted.marker, 'report-concurrent-accepted');
+  assert.equal(accepted.upload.statusCode, 204);
+  assert.equal(accepted.upload.httpSucceeded, true);
+  assert.equal(denied.upload.attempts, 1);
+  assert.equal(accepted.upload.attempts, 1);
 });
 
 test('部署探针触发全部场景与并发请求，每轮提供唯一 marker', async () => {

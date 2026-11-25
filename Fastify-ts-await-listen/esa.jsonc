@@ -1,0 +1,5 @@
+{
+  "name": "fastify-ts-await-listen",
+  "installCommand": "npm install --no-audit --no-fund",
+  // 不预构建；保留顶层 await app.listen()，验证真实 listening 事件。
+}

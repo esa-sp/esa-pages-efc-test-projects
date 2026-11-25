@@ -1,0 +1,5 @@
+{
+  "name": "express-ts-esm",
+  "installCommand": "npm install --no-audit --no-fund",
+  // 不预构建、不使用 TS loader；由 TestStep 保留 ESM 语义并逐文件转译。
+}

@@ -1,0 +1,15 @@
+{
+  "assertions": [
+    { "path": "/", "expectedStatus": 200, "bodyContains": "User Built CJS" },
+    {
+      "path": "/api/health",
+      "expectedStatus": 200,
+      "bodyJsonSubset": {
+        "ok": true,
+        "module": "cjs",
+        "artifact": "user-built-cjs",
+        "from": "outdir"
+      }
+    }
+  ]
+}

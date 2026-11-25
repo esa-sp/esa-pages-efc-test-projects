@@ -1,0 +1,40 @@
+{
+  "assertions": [
+    {
+      "path": "/api/esm",
+      "expectedStatus": 200,
+      "bodyJsonSubset": {
+        "module": "mts",
+        "value": "alias-ts",
+        "initialized": "top-level-await",
+        "resource": "fc-resource"
+      }
+    },
+    {
+      "path": "/api/cjs",
+      "expectedStatus": 200,
+      "bodyJsonSubset": { "module": "cts" }
+    },
+    {
+      "path": "/api/plain",
+      "expectedStatus": 200,
+      "bodyJsonSubset": { "module": "js", "value": "js-to-ts" }
+    },
+    {
+      "path": "/api/nested",
+      "expectedStatus": 200,
+      "bodyJsonSubset": { "module": "nested-commonjs" }
+    },
+    {
+      "path": "/api/items/42",
+      "expectedStatus": 200,
+      "bodyJsonSubset": { "id": "42", "value": "alias-ts" }
+    },
+    {
+      "path": "/api/items/special",
+      "expectedStatus": 200,
+      "bodyJsonSubset": { "kind": "static", "value": "alias-ts" }
+    },
+    { "path": "/api/types.d", "expectedStatus": 404 }
+  ]
+}
