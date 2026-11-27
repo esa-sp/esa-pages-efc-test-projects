@@ -1,0 +1,7 @@
+{
+  "install": ["npm", "ci", "--no-audit", "--no-fund"],
+  "build": ["npm", "run", "build"],
+  "start": ["npm", "run", "start", "--", "--hostname", "127.0.0.1"],
+  "env": { "NEXT_TELEMETRY_DISABLED": "1" },
+  "htmlAssets": ["/"]
+}

@@ -1,0 +1,6 @@
+{
+  "assertions": [
+    { "path": "/", "expectedStatus": 200, "bodyEquals": "Hello World!" },
+    { "path": "/__esa_missing__", "expectedStatus": 404, "bodyContains": "Cannot GET" }
+  ]
+}

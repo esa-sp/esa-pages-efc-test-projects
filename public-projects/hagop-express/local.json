@@ -1,0 +1,6 @@
+{
+  "install": ["corepack", "yarn@1.22.22", "install", "--frozen-lockfile", "--ignore-scripts", "--production=true"],
+  "start": ["node", "src/index.js"],
+  "envFrom": { "MONGODB_URL": "ESA_TEST_MONGODB_URL" },
+  "env": { "JWT_SECRET": "esa-local-hagop-fixture" }
+}

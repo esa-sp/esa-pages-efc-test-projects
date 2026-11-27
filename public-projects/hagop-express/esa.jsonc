@@ -1,0 +1,5 @@
+{
+  "name": "hagop-express",
+  "framework": "express",
+  "installCommand": "yarn install --frozen-lockfile --ignore-scripts --production=true"
+}

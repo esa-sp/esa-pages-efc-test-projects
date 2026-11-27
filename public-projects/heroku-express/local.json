@@ -1,0 +1,12 @@
+{
+  "install": [
+    "npm",
+    "ci",
+    "--no-audit",
+    "--no-fund"
+  ],
+  "start": [
+    "node",
+    "index.js"
+  ]
+}

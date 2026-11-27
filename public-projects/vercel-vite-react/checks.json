@@ -1,0 +1,6 @@
+{
+  "assertions": [
+    { "path": "/", "expectedStatus": 200, "bodyContains": "<div id=\"root\"></div>", "headersContain": { "content-type": "text/html" } },
+    { "path": "/vite.svg", "expectedStatus": 200, "bodyContains": "<svg", "headersContain": { "content-type": "image/svg+xml" } }
+  ]
+}

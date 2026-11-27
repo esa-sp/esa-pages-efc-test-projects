@@ -1,0 +1,7 @@
+{
+  "assertions": [
+    { "path": "/", "expectedStatus": 200, "bodyContains": "To get started, edit the page.tsx file.", "headersContain": { "content-type": "text/html" } },
+    { "path": "/next.svg", "expectedStatus": 200, "bodyContains": "<svg", "headersContain": { "content-type": "image/svg+xml" } },
+    { "path": "/unknown-route", "expectedStatus": 404, "headersContain": { "content-type": "text/html" } }
+  ]
+}

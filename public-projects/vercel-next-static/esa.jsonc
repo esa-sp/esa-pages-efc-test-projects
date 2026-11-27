@@ -1,0 +1,7 @@
+{
+  "name": "vercel-next-static",
+  "framework": "nextjs",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm build",
+  "assets": { "directory": "out", "notFoundStrategy": "404Page" }
+}

@@ -1,0 +1,11 @@
+{
+  "assertions": [
+    { "path": "/", "expectedStatus": 200, "bodyContains": "Static Export Mode" },
+    {
+      "path": "/next.svg",
+      "expectedStatus": 200,
+      "headersContain": { "content-type": "image/svg+xml" }
+    },
+    { "path": "/esa-fixture-does-not-exist", "expectedStatus": 404 }
+  ]
+}

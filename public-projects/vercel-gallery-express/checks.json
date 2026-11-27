@@ -1,0 +1,10 @@
+{
+  "assertions": [
+    { "path": "/", "expectedStatus": 200, "bodyContains": "Welcome to Express on Vercel" },
+    { "path": "/healthz", "expectedStatus": 200, "bodyJsonSubset": { "status": "ok" } },
+    { "path": "/api-data", "expectedStatus": 200, "bodyJsonSubset": { "items": ["apple", "banana", "cherry"] } },
+    { "path": "/about", "expectedStatus": 200, "bodyContains": "<h1>About</h1>", "headersContain": { "content-type": "text/html" } },
+    { "path": "/style.css", "expectedStatus": 200, "headersContain": { "content-type": "text/css" } },
+    { "path": "/logo.png", "expectedStatus": 200, "headersContain": { "content-type": "image/png" } }
+  ]
+}

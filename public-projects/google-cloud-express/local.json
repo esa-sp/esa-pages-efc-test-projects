@@ -1,0 +1,5 @@
+{
+  "install": ["npm", "ci", "--no-audit", "--no-fund"],
+  "start": ["node", "index.js"],
+  "env": { "NAME": "World" }
+}

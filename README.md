@@ -5,7 +5,18 @@
 - 顶层独立项目：11 个
 - `backend-tests/` 后端框架项目：13 个
 - 不包含仅测试包管理器、云构建 init、仓库来源或上传方式的变体
-- 不提交 lockfile、`node_modules` 或构建产物
+- 这些手写样例不提交 lockfile、`node_modules` 或构建产物
+
+## 公网 Express 与 Vercel 项目
+
+[`public-projects/`](./public-projects/README.md) 收录第三方 Express 与 Vercel 官方项目的固定源码快照。每个目录有上游位置和版本、ESA 配置、本地启动配置、明确的成功断言。公网样例保留上游已有锁文件，缺少锁时由验收补齐。原有手写项目仍使用其原来的依赖约定。
+
+```bash
+node scripts/run-public-local.mjs render-express vercel-cli-express
+node scripts/probe-public.mjs public-projects/vercel-cli-express https://<部署域名>
+```
+
+本地回归会在临时目录安装、构建、启动、探测和清理。需要 PostgreSQL 或 MongoDB 的样例可以用配套的 Docker Compose 一起运行。 [项目总表、本地全量命令与成功条件](./public-projects/README.md) · [上游调研清单](./docs/public-express-vercel-test-matrix.md)
 
 ## 控制台通用设置
 

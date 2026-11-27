@@ -32,3 +32,19 @@ Nuxt-app/assets/*
 .env
 .env.*
 !.env.example
+
+# 公网回归保留上游源码资源和依赖锁，构建输出仍忽略。
+!public-projects/**/package-lock.json
+!public-projects/**/npm-shrinkwrap.json
+!public-projects/**/pnpm-lock.yaml
+!public-projects/**/yarn.lock
+!public-projects/**/.env.sample
+!public-projects/**/.env.template
+!public-projects/**/src/assets/
+!public-projects/**/app/assets/
+!public-projects/**/public/assets/
+public-projects/**/.next/
+public-projects/**/.astro/
+public-projects/**/.turbo/
+public-projects/**/out/
+public-projects/**/*.tsbuildinfo

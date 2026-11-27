@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "path": "/",
+      "expectedStatus": 200,
+      "bodyJsonSubset": {
+        "message": "🦄🌈✨👋🌎🌍🌏✨🌈🦄"
+      },
+      "headersContain": {
+        "content-type": "application/json"
+      }
+    },
+    {
+      "path": "/api/v1",
+      "expectedStatus": 200,
+      "bodyJsonSubset": {
+        "message": "API - 👋🌎🌍🌏"
+      }
+    },
+    {
+      "path": "/api/v1/emojis",
+      "expectedStatus": 200,
+      "bodyJsonSubset": [
+        "😀",
+        "😳",
+        "🙄"
+      ]
+    },
+    {
+      "path": "/esa-probe-missing",
+      "expectedStatus": 404,
+      "bodyJsonSubset": {
+        "message": "🔍 - Not Found - /esa-probe-missing"
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "assertions": [
+    {
+      "path": "/api/greeting",
+      "expectedStatus": 200,
+      "bodyJsonSubset": { "greeting": "Hello world!" },
+      "headersContain": { "content-type": "application/json" }
+    },
+    {
+      "path": "/api/items",
+      "expectedStatus": 200,
+      "bodyJsonSubset": []
+    },
+    {
+      "path": "/esa-probe-missing",
+      "expectedStatus": 404
+    }
+  ]
+}

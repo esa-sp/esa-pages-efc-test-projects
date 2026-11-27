@@ -1,0 +1,6 @@
+{
+  "assertions": [
+    { "path": "/v1/users", "expectedStatus": 401, "bodyJsonSubset": { "code": 401, "message": "Please authenticate" } },
+    { "path": "/unknown-route", "expectedStatus": 404, "bodyJsonSubset": { "code": 404, "message": "Not found" } }
+  ]
+}

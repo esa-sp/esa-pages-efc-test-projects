@@ -1,0 +1,19 @@
+{
+  "assertions": [
+    { "path": "/", "expectedStatus": 200, "bodyContains": "Welcome to Astro." },
+    { "path": "/favicon.ico", "expectedStatus": 200 },
+    {
+      "path": "/ssr",
+      "expectedStatus": 200,
+      "bodyContains": "<h1>",
+      "headersContain": { "content-type": "text/html" }
+    },
+    {
+      "path": "/ssr-with-swr-caching",
+      "expectedStatus": 200,
+      "bodyContains": "<h1>",
+      "headersContain": { "cache-control": "s-maxage=10" }
+    },
+    { "path": "/image", "expectedStatus": 200, "bodyContains": "Astro Logo" }
+  ]
+}

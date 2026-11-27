@@ -1,0 +1,5 @@
+{
+  "name": "heroku-express",
+  "framework": "express",
+  "installCommand": "npm ci --no-audit --no-fund"
+}

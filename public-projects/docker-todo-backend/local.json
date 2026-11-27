@@ -1,0 +1,14 @@
+{
+  "install": [
+    "node",
+    "install-local.mjs"
+  ],
+  "start": [
+    "node",
+    "src/index.js"
+  ],
+  "env": {
+    "MYSQL_HOST": "",
+    "SQLITE_DB_LOCATION": "./.esa-test-data/todo.db"
+  }
+}

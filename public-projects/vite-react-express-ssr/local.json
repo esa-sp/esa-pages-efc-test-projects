@@ -1,0 +1,20 @@
+{
+  "install": [
+    "npm",
+    "ci",
+    "--no-audit",
+    "--no-fund"
+  ],
+  "build": [
+    "npm",
+    "run",
+    "build"
+  ],
+  "start": [
+    "node",
+    "server.js"
+  ],
+  "htmlAssets": [
+    "/"
+  ]
+}

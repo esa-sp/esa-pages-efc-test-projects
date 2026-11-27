@@ -1,0 +1,6 @@
+{
+  "name": "edwinhern-express-ts",
+  "framework": "express",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm build"
+}

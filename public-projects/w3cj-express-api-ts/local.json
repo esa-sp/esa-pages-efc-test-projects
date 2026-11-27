@@ -1,0 +1,17 @@
+{
+  "install": [
+    "corepack",
+    "pnpm@10.33.0",
+    "install",
+    "--frozen-lockfile"
+  ],
+  "build": [
+    "corepack",
+    "pnpm@10.33.0",
+    "build"
+  ],
+  "start": [
+    "node",
+    "dist/src/index.js"
+  ]
+}

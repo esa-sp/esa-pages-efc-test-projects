@@ -1,0 +1,8 @@
+{
+  "assertions": [
+    { "path": "/", "expectedStatus": 200, "bodyEquals": "Hello Express!" },
+    { "path": "/api/users/42", "expectedStatus": 200, "bodyJsonSubset": { "id": "42" } },
+    { "path": "/api/posts/1/comments/2", "expectedStatus": 200, "bodyJsonSubset": { "postId": "1", "commentId": "2" } },
+    { "path": "/unknown-route", "expectedStatus": 404, "bodyContains": "Cannot GET /unknown-route" }
+  ]
+}

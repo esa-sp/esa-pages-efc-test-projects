@@ -1,0 +1,7 @@
+{
+  "name": "vercel-nuxt4",
+  "framework": "nuxtjs",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm build",
+  "regionFunction": { "runtime": "nodejs24" }
+}

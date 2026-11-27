@@ -1,0 +1,11 @@
+{
+  "install": ["npm", "ci", "--no-audit", "--no-fund"],
+  "build": ["npm", "run", "build:esa"],
+  "prepare": ["node", "prepare-local.mjs"],
+  "start": ["node", "dist/api/main.js"],
+  "envFrom": { "DATABASE_URL": "ESA_TEST_POSTGRES_URL" },
+  "env": {
+    "JWT_SECRET": "esa-local-realworld-fixture",
+    "NX_DAEMON": "false"
+  }
+}

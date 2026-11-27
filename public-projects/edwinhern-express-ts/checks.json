@@ -1,0 +1,37 @@
+{
+  "assertions": [
+    {
+      "path": "/health-check",
+      "expectedStatus": 200,
+      "bodyJsonSubset": {
+        "success": true,
+        "message": "Service is healthy",
+        "responseObject": null,
+        "statusCode": 200
+      }
+    },
+    {
+      "path": "/users/1",
+      "expectedStatus": 200,
+      "bodyJsonSubset": {
+        "success": true,
+        "responseObject": {
+          "id": 1,
+          "name": "Alice"
+        }
+      }
+    },
+    {
+      "path": "/swagger.json",
+      "expectedStatus": 200,
+      "bodyJsonSubset": {
+        "info": {
+          "title": "Swagger API"
+        }
+      },
+      "headersContain": {
+        "content-type": "application/json"
+      }
+    }
+  ]
+}

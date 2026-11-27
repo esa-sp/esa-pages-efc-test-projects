@@ -1,0 +1,5 @@
+{
+  "name": "render-express",
+  "framework": "express",
+  "installCommand": "yarn install --frozen-lockfile"
+}

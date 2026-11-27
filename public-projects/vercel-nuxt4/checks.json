@@ -1,0 +1,11 @@
+{
+  "assertions": [
+    { "path": "/", "expectedStatus": 200, "bodyContains": "Nuxt" },
+    { "path": "/robots.txt", "expectedStatus": 200, "bodyContains": "User-Agent: *" },
+    {
+      "path": "/api/esa-probe?label=esa-local",
+      "expectedStatus": 200,
+      "bodyJsonSubset": { "framework": "nuxt", "mode": "server", "label": "esa-local" }
+    }
+  ]
+}

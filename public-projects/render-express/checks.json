@@ -1,0 +1,17 @@
+{
+  "assertions": [
+    {
+      "path": "/",
+      "expectedStatus": 200,
+      "bodyContains": "<title>Hello from Render!</title>",
+      "headersContain": {
+        "content-type": "text/html"
+      }
+    },
+    {
+      "path": "/esa-probe-missing",
+      "expectedStatus": 404,
+      "bodyContains": "Cannot GET /esa-probe-missing"
+    }
+  ]
+}

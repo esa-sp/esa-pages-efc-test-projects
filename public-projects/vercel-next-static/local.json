@@ -1,0 +1,6 @@
+{
+  "install": ["corepack", "pnpm", "install", "--frozen-lockfile"],
+  "build": ["corepack", "pnpm", "build"],
+  "staticDir": "out",
+  "htmlAssets": ["/"]
+}

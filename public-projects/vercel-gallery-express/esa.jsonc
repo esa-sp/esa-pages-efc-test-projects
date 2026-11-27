@@ -1,0 +1,8 @@
+{
+  "name": "vercel-gallery-express",
+  "framework": "express",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "assets": {
+    "directory": "public"
+  }
+}

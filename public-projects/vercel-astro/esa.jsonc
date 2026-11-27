@@ -1,0 +1,7 @@
+{
+  "name": "vercel-astro",
+  "framework": "astro",
+  "installCommand": "npm ci",
+  "buildCommand": "npm run build",
+  "regionFunction": { "runtime": "nodejs22" }
+}

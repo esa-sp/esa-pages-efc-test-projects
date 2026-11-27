@@ -1,0 +1,32 @@
+{
+  "assertions": [
+    {
+      "path": "/",
+      "expectedStatus": 200,
+      "bodyContains": "<h1>Getting Started on Heroku with Node.js</h1>",
+      "headersContain": {
+        "content-type": "text/html"
+      }
+    },
+    {
+      "path": "/stylesheets/main.css",
+      "expectedStatus": 200,
+      "bodyContains": ".jumbotron",
+      "headersContain": {
+        "content-type": "text/css"
+      }
+    },
+    {
+      "path": "/lang-logo.png",
+      "expectedStatus": 200,
+      "headersContain": {
+        "content-type": "image/png"
+      }
+    },
+    {
+      "path": "/esa-probe-missing",
+      "expectedStatus": 404,
+      "bodyContains": "Cannot GET /esa-probe-missing"
+    }
+  ]
+}

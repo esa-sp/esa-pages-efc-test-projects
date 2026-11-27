@@ -1,0 +1,6 @@
+{
+  "name": "w3cj-express-api-ts",
+  "framework": "express",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm build"
+}

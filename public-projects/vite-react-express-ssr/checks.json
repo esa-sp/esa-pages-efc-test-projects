@@ -1,0 +1,24 @@
+{
+  "assertions": [
+    {
+      "path": "/",
+      "expectedStatus": 200,
+      "bodyContains": "<h1>Get started</h1>",
+      "headersContain": {
+        "content-type": "text/html"
+      }
+    },
+    {
+      "path": "/esa-ssr-probe",
+      "expectedStatus": 200,
+      "bodyContains": "<h1>Get started</h1>"
+    },
+    {
+      "path": "/favicon.svg",
+      "expectedStatus": 200,
+      "headersContain": {
+        "content-type": "image/svg+xml"
+      }
+    }
+  ]
+}

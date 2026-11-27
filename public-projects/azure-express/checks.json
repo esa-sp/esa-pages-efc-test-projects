@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    { "path": "/", "expectedStatus": 200, "bodyEquals": "Hello World!" },
+    { "path": "/api", "expectedStatus": 200, "bodyEquals": "Fabrikam Bank API" },
+    {
+      "path": "/api/accounts/test",
+      "expectedStatus": 200,
+      "bodyJsonSubset": { "user": "test", "currency": "$", "balance": 75 }
+    },
+    {
+      "path": "/api/accounts/__esa_missing__",
+      "expectedStatus": 404,
+      "bodyJsonSubset": { "error": "User does not exist" }
+    }
+  ]
+}

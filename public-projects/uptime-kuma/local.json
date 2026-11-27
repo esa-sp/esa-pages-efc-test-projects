@@ -1,0 +1,24 @@
+{
+  "install": [
+    "npm",
+    "ci",
+    "--no-audit",
+    "--no-fund"
+  ],
+  "build": [
+    "npm",
+    "run",
+    "build"
+  ],
+  "start": [
+    "node",
+    "server/server.js"
+  ],
+  "env": {
+    "DATA_DIR": "./.esa-test-data/",
+    "UPTIME_KUMA_DB_TYPE": "sqlite"
+  },
+  "htmlAssets": [
+    "/dashboard"
+  ]
+}

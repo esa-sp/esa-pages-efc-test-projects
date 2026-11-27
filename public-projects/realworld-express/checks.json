@@ -1,0 +1,7 @@
+{
+  "assertions": [
+    { "path": "/", "expectedStatus": 200, "bodyJsonSubset": { "status": "API is running on /api" } },
+    { "path": "/api/tags", "expectedStatus": 200, "bodyJsonSubset": { "tags": [] } },
+    { "path": "/images/demo-avatar.png", "expectedStatus": 200, "headersContain": { "content-type": "image/png" } }
+  ]
+}

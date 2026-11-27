@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "path": "/",
+      "expectedStatus": 302,
+      "headersContain": { "location": "/dashboard" }
+    },
+    {
+      "path": "/dashboard",
+      "expectedStatus": 200,
+      "bodyContains": "<title>Uptime Kuma</title>",
+      "headersContain": { "content-type": "text/html" }
+    },
+    {
+      "path": "/setup-database-info",
+      "expectedStatus": 200,
+      "bodyJsonSubset": { "runningSetup": false, "needSetup": false }
+    },
+    {
+      "path": "/robots.txt",
+      "expectedStatus": 200,
+      "bodyContains": "User-agent: *",
+      "headersContain": { "content-type": "text/plain" }
+    }
+  ]
+}

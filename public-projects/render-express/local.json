@@ -1,0 +1,12 @@
+{
+  "install": [
+    "corepack",
+    "yarn@1.22.22",
+    "install",
+    "--frozen-lockfile"
+  ],
+  "start": [
+    "node",
+    "app.js"
+  ]
+}
